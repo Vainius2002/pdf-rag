@@ -1,0 +1,27 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: filescan_db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: filescan
+    volumes:
+      - filescan_pgdata:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: filescan_app
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/filescan
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    depends_on:
+      - db
+
+volumes:
+  filescan_pgdata:
+

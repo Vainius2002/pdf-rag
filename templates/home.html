@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>file-scan</title>
+    <link rel="stylesheet" href="/static/home.css">
+</head>
+<body>
+    {% include "_navbar.html" %}
+    <main class="main">
+        <div class="container">
+            <h2>Ask a PDF</h2>
+            <form id="askForm">
+                <input type="file" name="pdf" accept="application/pdf" required>
+                <input type="text" name="question" placeholder="Your question" required>
+                <button type="submit">Ask</button>
+            </form>
+            <pre id="answer"></pre>
+        </div>
+    </main>
+    <script src="/static/navbar.js"></script>
+    <script src="/static/ask.js"></script>
+</body>
+</html>
