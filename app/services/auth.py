@@ -31,6 +31,7 @@ def create_access_token(user_id):
 #sub = subject, so basically for which user basically
 #exp = expiration of our current time + 24 hours
 #jwt.encode requires taking our payload, secret and it spits out encoded token string
+#also we basically carry the user.id inside the token, by doing payload logic. That string literally has subject as User.id
 
 def decode_token(token):
     payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])

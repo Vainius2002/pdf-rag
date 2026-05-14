@@ -26,3 +26,4 @@ def login(name : str = Form(), passw : str = Form()):
         
         token = create_access_token(user.id)
         return {"access_token" : token, "token_type" : "bearer"}
+        

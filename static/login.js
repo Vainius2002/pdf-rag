@@ -11,6 +11,7 @@ form.addEventListener("submit", async(e) =>{
     if (res.ok) {
         localStorage.setItem("token", data.access_token); //we store the token we receive into browsers local storage as key 'token'. This way we can use it in future requests
         msg.textContent = "Logged in! Token saved.";
+        window.location.href = "/"; //redirecting to home page.
     } else {
         msg.textContent = `Error: ${data.detail}`;
     }

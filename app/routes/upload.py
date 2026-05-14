@@ -4,19 +4,21 @@
 # Also for using Form we have to first tell python what type is it, so f.e question : str = Form()
 # Also we use async, to tell python this function is pausable, so that we can then use await = pause this function so it doesnt block servers requests from other users
 
-from fastapi import APIRouter, UploadFile, Depends, HTTPException
+from fastapi import APIRouter, UploadFile, HTTPException, Depends
 from app.services.pdf import extract_pdf
 from app.services.chunker import chunker
 from app.services.embeddings import embed
 from app.services.storage import save_document
-from app.dependencies import get_current_user
 from app.models import User
+from app.dependencies import get_current_user
+
+
 
 router = APIRouter()
 
 
 @router.post("/upload")
-async def upload(pdf: UploadFile, user: User = Depends(get_current_user)):
+async def upload(pdf: UploadFile, user : User = Depends(get_current_user)):
     # Guard: must be a PDF
     if pdf.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="File must be a PDF")

@@ -1,11 +1,11 @@
+const token = localStorage.getItem("token");
+if (!token) {
+    document.getElementById("answer").textContent = "Not logged in. Go to /login first.";
+    window.location.href = "/login";
+}
+
 document.getElementById("askForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-
-    const token = localStorage.getItem("token");
-    if (!token) {
-        document.getElementById("answer").textContent = "Not logged in. Go to /login first.";
-        return;
-    }
 
     const form = e.target;
     const pdfFile = form.querySelector('input[name="pdf"]').files[0];
@@ -17,7 +17,7 @@ document.getElementById("askForm").addEventListener("submit", async (e) => {
 
     const uploadRes = await fetch("/upload", {
         method: "POST",
-        headers: { "Authorization": `Bearer ${token}` },
+        headers: {"authorization" : `Bearer ${token}` },
         body: uploadData,
     });
 
@@ -36,7 +36,7 @@ document.getElementById("askForm").addEventListener("submit", async (e) => {
 
     const askRes = await fetch("/ask", {
         method: "POST",
-        headers: { "Authorization": `Bearer ${token}` },
+        headers: {"authorization" : `Bearer ${token}` },
         body: askData,
     });
 

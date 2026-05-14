@@ -10,6 +10,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
     const data = await res.json();
     if (res.ok) {
         status.textContent = `Created user ${data.username} (id ${data.id})`;
+        window.location.href = "/login";
     } else {
         status.textContent = `Error: ${data.detail}`;
     }
