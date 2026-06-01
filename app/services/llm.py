@@ -1,12 +1,12 @@
-from openai import OpenAI
+from langchain_openai import ChatOpenAI
 from app.config import OPENAI_API_KEY
 
-client = OpenAI(api_key=OPENAI_API_KEY)
+llm = ChatOpenAI(
+    model="gpt-5-mini",
+    api_key=OPENAI_API_KEY,
+    temperature=0,
+)
 
-def llm_message(question, pdf_polished):
-    response = client.responses.create(
-        model="gpt-5-mini",
-        input=f"{question} : {pdf_polished}"
-    )
-    return response.output_text
-    
+# llm = a pre-configured "caller" object for the OpenAI chat model.
+# Anywhere we need to ask the LLM something, we just call llm.invoke(prompt).
+# temperature=0 = deterministic answers (good for Q&A; raise for creative output).
