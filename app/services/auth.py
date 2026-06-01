@@ -36,3 +36,5 @@ def create_access_token(user_id):
 def decode_token(token):
     payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
     return int(payload["sub"])
+
+

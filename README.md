@@ -48,6 +48,7 @@ User  ──1:N──>  Document  ──1:N──>  Chunk
 | PDF parsing | **PyMuPDF (fitz)** | Fast, reliable PDF text extraction |
 | Embeddings | **OpenAI `text-embedding-3-small`** | 1536-dim, cheap (~$0.02 / 1M tokens) |
 | LLM | **OpenAI `gpt-5-mini`** | Cost-effective for short Q&A use cases |
+| LLM orchestration | **LangChain** (`ChatOpenAI`, `ChatPromptTemplate`, LCEL) | Standard library for composing LLM pipelines; swappable model providers |
 | Containerization | **Docker Compose** | One command runs the whole stack |
 
 ---
@@ -172,7 +173,7 @@ file-scan/
 │       ├── chunker.py       # Splits text into ~500-char chunks
 │       ├── embeddings.py    # OpenAI embeddings wrapper
 │       ├── storage.py       # save_document + get_top_chunks
-│       └── llm.py           # OpenAI chat completion wrapper
+│       └── llm.py           # ChatOpenAI instance (LangChain), used by the /ask chain
 ├── alembic/                 # DB migrations
 ├── templates/, static/      # Server-rendered UI (minimal)
 ├── Dockerfile               # App image
@@ -188,6 +189,8 @@ I wanted a portfolio project that goes beyond CRUD apps — something that shows
 
 I deliberately kept the LLM logic dumb and the data layer interesting — the hard parts of RAG aren't talking to OpenAI, they're chunking, retrieval quality, and how you store/query vectors.
 
+I first built the whole pipeline using the raw OpenAI SDK so I'd understand what each step actually does — chunking, embedding, vector search, prompt assembly, LLM call. Once it was working end-to-end, I refactored the `/ask` flow to use LangChain (`ChatOpenAI` + `ChatPromptTemplate` + LCEL pipe composition) — same behavior, declarative pipeline, and the model provider is now a single line to swap. The retrieval half stayed mine (pgvector cosine similarity over the chunks table) because that part of the code was already clean and didn't need an abstraction over it. Knowing both the primitives and the framework is the point — I'd rather understand what LangChain wraps than treat it as magic.
+
 ---
 
 ## What's next
@@ -195,6 +198,7 @@ I deliberately kept the LLM logic dumb and the data layer interesting — the ha
 - **Per-user document list UI** — currently the home page only uploads-and-asks in one shot; a "your documents" view + dashboard is the next iteration
 - **Logout + `/me` endpoint** — small additions to round out the auth surface
 - **Smarter chunking** — sentence-aware splitting instead of fixed character windows
+- **LangGraph mini-agent** — extend the `/ask` flow with a small tool-using agent (e.g., decide whether to retrieve, re-ask, or refuse)
 - **Logging** — replace remaining `print` statements with the `logging` module
 - **More test coverage** — currently covers chunker + auth (hash/verify/JWT); route-level integration tests are next
 
