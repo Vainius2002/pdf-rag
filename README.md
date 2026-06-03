@@ -49,6 +49,7 @@ User  ──1:N──>  Document  ──1:N──>  Chunk
 | Embeddings | **OpenAI `text-embedding-3-small`** | 1536-dim, cheap (~$0.02 / 1M tokens) |
 | LLM | **OpenAI `gpt-5-mini`** | Cost-effective for short Q&A use cases |
 | LLM orchestration | **LangChain** (`ChatOpenAI`, `ChatPromptTemplate`, LCEL) | Standard library for composing LLM pipelines; swappable model providers |
+| Agent orchestration | **LangGraph** (`StateGraph` with nodes + conditional edges) | Multi-step agent that grades retrieval quality and retries before answering |
 | Containerization | **Docker Compose** | One command runs the whole stack |
 
 ---
@@ -173,7 +174,8 @@ file-scan/
 │       ├── chunker.py       # Splits text into ~500-char chunks
 │       ├── embeddings.py    # OpenAI embeddings wrapper
 │       ├── storage.py       # save_document + get_top_chunks
-│       └── llm.py           # ChatOpenAI instance (LangChain), used by the /ask chain
+│       ├── llm.py           # ChatOpenAI instance (LangChain), used across the agent
+│       └── agent.py         # LangGraph state graph: retrieve → grade → answer (with retry)
 ├── alembic/                 # DB migrations
 ├── templates/, static/      # Server-rendered UI (minimal)
 ├── Dockerfile               # App image
@@ -191,6 +193,8 @@ I deliberately kept the LLM logic dumb and the data layer interesting — the ha
 
 I first built the whole pipeline using the raw OpenAI SDK so I'd understand what each step actually does — chunking, embedding, vector search, prompt assembly, LLM call. Once it was working end-to-end, I refactored the `/ask` flow to use LangChain (`ChatOpenAI` + `ChatPromptTemplate` + LCEL pipe composition) — same behavior, declarative pipeline, and the model provider is now a single line to swap. The retrieval half stayed mine (pgvector cosine similarity over the chunks table) because that part of the code was already clean and didn't need an abstraction over it. Knowing both the primitives and the framework is the point — I'd rather understand what LangChain wraps than treat it as magic.
 
+After that, I wanted to learn agentic patterns properly, so I rewrote `/ask` as a small **LangGraph** state graph: a `retrieve` node fetches chunks via the existing pgvector path, a `grade` node asks the LLM whether those chunks actually contain enough information to answer, and a router (conditional edge) decides — if the grade is YES (or we've already retried twice), proceed to the `answer` node; otherwise loop back and retrieve again. The retry cap keeps it from spinning, and the state carries `question`, `chunks`, `grade`, `answer`, and `attempts` between nodes. It's a deliberate over-engineering of a problem that doesn't strictly need it — but that's the point: building it gave me a real feel for nodes, state, edges, and conditional routing in a working production-shaped app rather than a toy example.
+
 ---
 
 ## What's next
@@ -198,7 +202,7 @@ I first built the whole pipeline using the raw OpenAI SDK so I'd understand what
 - **Per-user document list UI** — currently the home page only uploads-and-asks in one shot; a "your documents" view + dashboard is the next iteration
 - **Logout + `/me` endpoint** — small additions to round out the auth surface
 - **Smarter chunking** — sentence-aware splitting instead of fixed character windows
-- **LangGraph mini-agent** — extend the `/ask` flow with a small tool-using agent (e.g., decide whether to retrieve, re-ask, or refuse)
+- **Tool-using agent** — extend the current LangGraph agent with real tools (search the web, query metadata, summarise) instead of only retrieve/grade/answer
 - **Logging** — replace remaining `print` statements with the `logging` module
 - **More test coverage** — currently covers chunker + auth (hash/verify/JWT); route-level integration tests are next
 
